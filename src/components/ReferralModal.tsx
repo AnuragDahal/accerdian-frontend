@@ -65,7 +65,7 @@ export function ReferralModal({ trigger }: ReferralModalProps) {
         toast.error("Failed to submit referral. Please try again later.");
       }
     } catch (error) {
-      toast.error("Failed to submit referral. Please try again later.");
+      toast.error(`Failed to submit.${error}`);
     } finally {
       setIsSubmitting(false);
       setOpen(false); // Close the dialog regardless of success or failure
@@ -91,7 +91,9 @@ export function ReferralModal({ trigger }: ReferralModalProps) {
             <Tabs defaultValue="referrer" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-4">
                 <TabsTrigger value="referrer">Your Information</TabsTrigger>
-                <TabsTrigger value="referee">Friend's Information</TabsTrigger>
+                <TabsTrigger value="referee">
+                  Friend&apos;s Information
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="referrer" className="space-y-4">
@@ -144,7 +146,7 @@ export function ReferralModal({ trigger }: ReferralModalProps) {
                   name="refereeName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Friend's Name</FormLabel>
+                      <FormLabel>Friend&apos;s Name</FormLabel>
                       <FormControl>
                         <Input placeholder="Jane Smith" {...field} />
                       </FormControl>
@@ -158,7 +160,7 @@ export function ReferralModal({ trigger }: ReferralModalProps) {
                   name="refereeEmail"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Friend's Email</FormLabel>
+                      <FormLabel>Friend&apos;s Email</FormLabel>
                       <FormControl>
                         <Input placeholder="jane@example.com" {...field} />
                       </FormControl>
@@ -172,7 +174,7 @@ export function ReferralModal({ trigger }: ReferralModalProps) {
                   name="refereePhone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Friend's Phone (optional)</FormLabel>
+                      <FormLabel>Friend&apos;s Phone (optional)</FormLabel>
                       <FormControl>
                         <Input placeholder="+1 123 456 7890" {...field} />
                       </FormControl>
