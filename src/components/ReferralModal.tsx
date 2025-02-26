@@ -1,80 +1,212 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-
-import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
+
+import {
+  referralFormSchema,
+  ReferralFormValues,
+} from "@/lib/validations/referral-schema";
+import { referralService } from "@/services/api";
 
 interface ReferralModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  trigger?: React.ReactNode;
 }
-const ReferralModal = ({ isOpen, onClose }: ReferralModalProps) => {
-  const [formData, setFormData] = useState({
-    friendName: "",
-    friendEmail: "",
+
+export function ReferralModal({ trigger }: ReferralModalProps) {
+  const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const form = useForm<ReferralFormValues>({
+    resolver: zodResolver(referralFormSchema),
+    defaultValues: {
+      referrerName: "",
+      referrerEmail: "",
+      referrerPhone: "",
+      refereeName: "",
+      refereeEmail: "",
+      refereePhone: "",
+    },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast.success("Invitation sent successfully!");
-    onClose();
-    setFormData({ friendName: "", friendEmail: "" });
+  const onSubmit = async (values: ReferralFormValues) => {
+    setIsSubmitting(true);
+    try {
+      const result = await referralService.submitReferral(values);
+
+      if (result.success) {
+        toast.success(
+          "Referral submitted successfully. Thank you for sharing!"
+        );
+        form.reset();
+      } else {
+        toast.error("Failed to submit referral. Please try again later.");
+      }
+    } catch (error) {
+      toast.error("Failed to submit referral. Please try again later.");
+    } finally {
+      setIsSubmitting(false);
+      setOpen(false); // Close the dialog regardless of success or failure
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] bg-white/95 backdrop-blur-sm border border-neutral-200">
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        {trigger || <Button variant="default">Refer a Friend</Button>}
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-semibold text-neutral-800">
-            Refer a Friend
-          </DialogTitle>
+          <DialogTitle>Refer a Friend</DialogTitle>
+          <DialogDescription>
+            Share the benefits with friends and family by referring them to our
+            service.
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
-          <div className="space-y-2">
-            <Label htmlFor="friendName" className="text-neutral-700">
-              Friend's Name
-            </Label>
-            <Input
-              id="friendName"
-              value={formData.friendName}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setFormData({ ...formData, friendName: e.target.value })
-              }
-              className="w-full border-neutral-300 focus:border-primary focus:ring-primary"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="friendEmail" className="text-neutral-700">
-              Friend's Email
-            </Label>
-            <Input
-              id="friendEmail"
-              type="email"
-              value={formData.friendEmail}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setFormData({ ...formData, friendEmail: e.target.value })
-              }
-              className="w-full border-neutral-300 focus:border-primary focus:ring-primary"
-              required
-            />
-          </div>
-          <Button
-            type="submit"
-            className="w-full bg-primary hover:bg-primary/90 text-white transition-all duration-300"
-          >
-            Send Invitation
-          </Button>
-        </form>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <Tabs defaultValue="referrer" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="referrer">Your Information</TabsTrigger>
+                <TabsTrigger value="referee">Friend's Information</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="referrer" className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="referrerName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Your Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="John Doe" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="referrerEmail"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Your Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="john@example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="referrerPhone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Your Phone (optional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="+1 123 456 7890" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+
+              <TabsContent value="referee" className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="refereeName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Friend's Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Jane Smith" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="refereeEmail"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Friend's Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="jane@example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="refereePhone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Friend's Phone (optional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="+1 123 456 7890" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+            </Tabs>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setOpen(false)}
+                type="button"
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Submitting
+                  </>
+                ) : (
+                  "Submit Referral"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
-};
+}
+
 export default ReferralModal;

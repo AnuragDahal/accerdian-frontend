@@ -1,5 +1,4 @@
-'use client';
-import { useState } from "react";
+"use client";
 import { motion } from "framer-motion";
 import ReferralModal from "@/components/ReferralModal";
 import BenefitCard from "@/components/BenefitCard";
@@ -7,8 +6,6 @@ import { Gift, DollarSign, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Home = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   const benefits = [
     {
       icon: <Gift className="w-6 h-6" />,
@@ -48,12 +45,13 @@ const Home = () => {
             Refer your friends to our platform and earn exclusive rewards, cash
             bonuses, and premium access to courses.
           </p>
-          <Button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-primary hover:bg-primary/90 text-white px-8 py-6 rounded-full text-lg font-medium transition-all duration-300 animate-scale-in"
-          >
-            Refer Now
-          </Button>
+          <ReferralModal
+            trigger={
+              <Button className="bg-primary hover:bg-primary/90 text-white px-8 py-6 rounded-full text-lg font-medium transition-all duration-300 animate-scale-in">
+                Refer Now
+              </Button>
+            }
+          />
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -69,11 +67,6 @@ const Home = () => {
           ))}
         </div>
       </div>
-
-      <ReferralModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
     </div>
   );
 };
